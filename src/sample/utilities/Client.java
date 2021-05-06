@@ -2,16 +2,14 @@ package sample.utilities;
 
 import javafx.scene.control.TextArea;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InterruptedIOException;
+import java.io.*;
 import java.net.Socket;
+import java.net.SocketException;
 
 public class Client {
     private static int port = 8080;
     private static String ipAddress = "localhost";
-    private static Thread receiveThread = null;
+    private static boolean isOn = false;
     private static TextArea memoTextArea;
     private static TextArea chatTextArea;
     private static ClientPOJO clientPOJO;
@@ -19,22 +17,30 @@ public class Client {
     public static String username;
 
     public static void start(String ipAddress, int port, TextArea memoTextArea, TextArea chatTextArea) {
+        isOn = true;
         Client.port = 8080;
         Client.ipAddress = ipAddress;
         Client.memoTextArea = memoTextArea;
         Client.chatTextArea = chatTextArea;
-        receiveThread = new Thread(new ReceiveMessage());
-        receiveThread.start();
+        new Thread(new ReceiveMessage()).start();
     }
 
     public static void stop() {
-        Thread tempThread = receiveThread;
-        receiveThread = null;
-        tempThread.interrupt();
+        if (isOn) {
+            try {
+                isOn = false;
+                clientPOJO.getSocket().close();
+            } catch (IOException ex) {}
+        }
     }
 
-    public static void sendMessage(String message) throws IOException{
-        Client.clientPOJO.getOut().writeUTF(message);
+    public static void sendMessage(String message) {
+        try {
+            Client.clientPOJO.getOut().writeUTF(message);
+        } catch (SocketException ex) {
+            System.out.println("Something is wrong: Server is probably offline");
+            System.out.println("Make sure that the server is on then restart the app and try again");
+        } catch (IOException ex) {ex.printStackTrace();}
     }
 
     private static class ReceiveMessage implements Runnable {
@@ -48,14 +54,13 @@ public class Client {
                 out.writeUTF(Client.username);
                 Client.clientPOJO = new ClientPOJO(sc, out, in, Client.username);
 
-                Thread thisThread = Thread.currentThread();
                 String message;
-                char prepend;
-                while(thisThread == receiveThread) {
+                char prefix;
+                while(isOn) {
                     try {
                         message = in.readUTF();
-                        prepend = message.charAt(0);
-                        switch (prepend) {
+                        prefix = message.charAt(0);
+                        switch (prefix) {
                             case 'm':
                                 memoTextArea.setText(message.substring(1, message.length()));
                                 break;
@@ -63,9 +68,11 @@ public class Client {
                                 chatTextArea.setText(chatTextArea.getText() + message.substring(1, message.length()) + "\n");
                                 break;
                         }
-                    } catch (InterruptedIOException ex) { }
+                    } catch (SocketException ex) { }  // closing
                 }
                 sc.close();
+            } catch (EOFException ex) {
+                System.out.println("Server is deactivated");
             } catch (IOException ex) {
                 ex.printStackTrace();
             }

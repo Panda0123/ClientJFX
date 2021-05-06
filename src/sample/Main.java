@@ -7,18 +7,20 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import sample.utilities.Client;
 
 public class Main extends Application {
-    // IO streams
-    DataOutputStream toServer = null;
-    DataInputStream fromServer = null;
 
-    @Override // Override the start method in the Application class
+    @Override
     public void start(Stage primaryStage) throws IOException {
         Parent root = FXMLLoader.load(getClass().getResource("fxml/landing.fxml"));
-//        primaryStage.setTitle("Login");
-//        primaryStage.initStyle(StageStyle.UNDECORATED);
         primaryStage.setScene(new Scene(root, 600, 400));
         primaryStage.show();
+    }
+
+    @Override
+    public void stop() {
+        System.out.println("Closing...");
+        Client.stop();
     }
 }

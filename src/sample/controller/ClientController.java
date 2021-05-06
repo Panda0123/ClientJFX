@@ -1,13 +1,12 @@
 package sample.controller;
 
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import sample.utilities.Client;
-
-import java.io.IOException;
 
 public class ClientController{
 
@@ -29,11 +28,7 @@ public class ClientController{
     }
 
     public void sendBtnHandler(ActionEvent event) {
-        try {
-            Client.sendMessage(chatTextField.getText());
-            chatTextField.setText("");
-        } catch (IOException ex){
-            ex.printStackTrace();
-        }
+        Client.sendMessage(chatTextField.getText());
+        chatTextField.setText("");
     }
 }

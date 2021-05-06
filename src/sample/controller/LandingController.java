@@ -31,7 +31,6 @@ public class LandingController {
         } else {
             errorLabel.setText("wrong credentials");
             errorLabel.setVisible(true);
-
         }
 
         errorLabel.setVisible(false);
@@ -45,7 +44,6 @@ public class LandingController {
             Stage clientStage = new Stage();
             clientStage.setScene(new Scene(root, 800, 500));
             clientStage.show();
-            System.out.println(usernameTextField.getText());
             Stage stage = (Stage) loginBtn.getScene().getWindow();
             stage.close();
         } catch (IOException ex) {
